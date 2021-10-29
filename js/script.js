@@ -11,7 +11,13 @@ var timerRef = null;	// Referens till timern för bilens förflyttning
 var startBtn;			// Referens till startknappen
 var stopBtn;			// Referens till stoppknappen
 /* === Tillägg i uppgiften === */
-
+var pigElem;
+var pigRef = null;
+const pigTimer = 2000;
+var hitCounterElem;
+var hitCounter;
+var pigCounterElem;
+var pigCounter;
 
 // ------------------------------
 // Initiera globala variabler och koppla funktion till knapp
@@ -30,7 +36,10 @@ function init() {
 		startBtn.disabled = false;
 		stopBtn.disabled = true;
 	/* === Tillägg i uppgiften === */
-		
+		pigElem = document.getElementById("pig"); 
+		pigCounterElem = document.getElementById("pigNr");
+		hitCounterElem = document.getElementById("hitCounter");
+
 
 } // End init
 window.addEventListener("load",init);
@@ -64,7 +73,10 @@ function startGame() {
 	carElem.src = "img/" + carImgs[carDir];
 	moveCar();
 	/* === Tillägg i uppgiften === */
-	
+	pigCounter = 0;
+	hitCounter = 0;
+	randomPigSpawn();
+	collision();
 
 } // End startGame
 // ------------------------------
@@ -106,9 +118,50 @@ function moveCar() {
 	carElem.style.top = y + "px";
 	timerRef = setTimeout(moveCar,timerStep);
 	/* === Tillägg i uppgiften === */
-	
 
 } // End moveCar
 // ------------------------------
 
 /* === Tillägg av nya funktioner i uppgiften === */
+function randomPigSpawn(){
+	let xLimit = boardElem.offsetWidth;
+	let yLimit = boardElem.offsetHeight;
+	
+	if(pigCounter < 10){
+	let x =  Math.max(xLimit * Math.random() - pigElem.offsetWidth, 0);
+	let y =  Math.max(yLimit * Math.random() - pigElem.offsetHeight, 0);
+	console.log(pigCounter);
+	console.log(pigElem);
+	pigElem.style.top = y + "px";
+	pigElem.style.left = x + "px";
+
+	pigElem.src = "img/pig.png";
+	pigElem.style.visibility = "visible";
+	pigCounter++;
+	pigCounterElem.innerHTML = pigCounter;	
+	pigRef = setTimeout(randomPigSpawn, pigTimer);
+	}
+
+}
+
+function collision(){
+	let carLeft = parseInt(carElem.style.left);
+	let carRight = carLeft + carElem.offsetWidth;
+	let carTop = parseInt(carElem.style.top);
+	let carBot = carTop + carElem.offsetHeight;
+
+	let pigLeft = parseInt(pigElem.style.Left);
+	let pigRight = pigLeft + pigElem.offsetWidth;
+	let pigTop = parseInt(pigElem.style.top);
+	let pigBot = pigTop + pigElem.offsetHeight;
+
+
+	if(carLeft < pigRight && carRight > pigLeft && carTop < pigBot && carBot > pigTop && hitCounter++){
+		pigElem.src = "img/smack.png";
+		hitCounter++;
+		hitCounterElem.innerHTML = hitCounter;
+		
+	}
+	console.log(hitCounter);
+
+}
