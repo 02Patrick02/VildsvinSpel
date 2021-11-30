@@ -11,13 +11,14 @@ var timerRef = null;	// Referens till timern för bilens förflyttning
 var startBtn;			// Referens till startknappen
 var stopBtn;			// Referens till stoppknappen
 /* === Tillägg i uppgiften === */
-var pigElem;
-var pigRef = null;
-const pigTimer = 2000;
-var hitCounterElem;
-var hitCounter;
-var pigCounterElem;
-var pigCounter;
+var pigElem; // Referens till grisen
+var pigHit = true;
+var pigRef = null; // En timer för hur snabbt grisen ska dyka upp
+const pigTimer = 2000; // Hur snabbt grisen ska visas
+var hitCounterElem; // Visar hur många grisar som har träffats 
+var hitCounter; // Räknare för hur många grisar som träffats
+var pigCounterElem; // Visar hur många grisar har lagts till
+var pigCounter; //räknare för hur många grisar som visas
 
 // ------------------------------
 // Initiera globala variabler och koppla funktion till knapp
@@ -36,10 +37,9 @@ function init() {
 		startBtn.disabled = false;
 		stopBtn.disabled = true;
 	/* === Tillägg i uppgiften === */
-		pigElem = document.getElementById("pig"); 
-		pigCounterElem = document.getElementById("pigNr");
-		hitCounterElem = document.getElementById("hitCounter");
-
+		pigElem = document.getElementById("pig"); // Referens till grisen
+		pigCounterElem = document.getElementById("pigNr"); // Referens till räknare av gris
+		hitCounterElem = document.getElementById("hitCounter"); // Referens till räknare av träffad gris
 
 } // End init
 window.addEventListener("load",init);
@@ -74,10 +74,11 @@ function startGame() {
 	moveCar();
 	/* === Tillägg i uppgiften === */
 	pigCounter = 0;
+	pigCounterElem.innerHTML = pigCounter;
 	hitCounter = 0;
-	randomPigSpawn();
-	collision();
-
+	hitCounterElem.innerHTML = hitCounter;
+	pigRef = setTimeout(randomPigSpawn, pigTimer);
+	pigHit = false;
 } // End startGame
 // ------------------------------
 // Stoppa spelet
@@ -86,7 +87,10 @@ function stopGame() {
 	startBtn.disabled = false;
 	stopBtn.disabled = true;
 	/* === Tillägg i uppgiften === */
-	
+	if(pigRef != null) {
+		clearTimeout(pigRef);
+		pigElem.style.visibility = "hidden";
+	}
 
 } // End stopGame
 // ------------------------------
@@ -118,7 +122,7 @@ function moveCar() {
 	carElem.style.top = y + "px";
 	timerRef = setTimeout(moveCar,timerStep);
 	/* === Tillägg i uppgiften === */
-
+	collision();
 } // End moveCar
 // ------------------------------
 
@@ -128,40 +132,45 @@ function randomPigSpawn(){
 	let yLimit = boardElem.offsetHeight;
 	
 	if(pigCounter < 10){
-	let x =  Math.max(xLimit * Math.random() - pigElem.offsetWidth, 0);
-	let y =  Math.max(yLimit * Math.random() - pigElem.offsetHeight, 0);
-	console.log(pigCounter);
-	console.log(pigElem);
-	pigElem.style.top = y + "px";
-	pigElem.style.left = x + "px";
+		pigCounter++;
+		pigCounterElem.innerHTML = pigCounter;
+		pigHit = false;
 
-	pigElem.src = "img/pig.png";
-	pigElem.style.visibility = "visible";
-	pigCounter++;
-	pigCounterElem.innerHTML = pigCounter;	
-	pigRef = setTimeout(randomPigSpawn, pigTimer);
+		let x =  Math.max(xLimit * Math.random() - pigElem.offsetWidth, 0);
+		let y =  Math.max(yLimit * Math.random() - pigElem.offsetHeight, 0);
+
+		pigElem.style.top = y + "px";
+		pigElem.style.left = x + "px";
+
+		pigElem.src = "img/pig.png";
+		pigElem.style.visibility = "visible";
+		pigRef = setTimeout(randomPigSpawn, pigTimer);
+	}
+	else{
+		stopGame();
 	}
 
 }
 
 function collision(){
+	if(pigHit) return;
+
 	let carLeft = parseInt(carElem.style.left);
 	let carRight = carLeft + carElem.offsetWidth;
 	let carTop = parseInt(carElem.style.top);
 	let carBot = carTop + carElem.offsetHeight;
-
-	let pigLeft = parseInt(pigElem.style.Left);
+	
+	let pigLeft = parseInt(pigElem.style.left);
 	let pigRight = pigLeft + pigElem.offsetWidth;
 	let pigTop = parseInt(pigElem.style.top);
 	let pigBot = pigTop + pigElem.offsetHeight;
 
-
-	if(carLeft < pigRight && carRight > pigLeft && carTop < pigBot && carBot > pigTop && hitCounter++){
-		pigElem.src = "img/smack.png";
+	if(carLeft < pigRight && carRight > pigLeft && carTop < pigBot && carBot > pigTop){
 		hitCounter++;
 		hitCounterElem.innerHTML = hitCounter;
-		
+		pigHit = true;
+		clearTimeout(pigRef);
+		pigElem.src = "img/smack.png";
+		pigRef = setTimeout(randomPigSpawn, pigTimer);
 	}
-	console.log(hitCounter);
-
 }
